@@ -1,6 +1,7 @@
 outfile = open('./solution.txt', 'w')
 
 with open('./b_lovely_landscapes.txt', 'r') as f:
+from random import shuffle
 
     picture_all = []
     picture_h = []
