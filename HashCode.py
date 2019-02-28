@@ -1,3 +1,5 @@
+from Photo import Photo, Slide
+
 outfile = open('./solution.txt', 'w')
 
 with open('./b_lovely_landscapes.txt', 'r') as f:
@@ -17,7 +19,16 @@ with open('./b_lovely_landscapes.txt', 'r') as f:
             #print(orientation + " " + num_of_tags)
             #print(tags)
             if orientation == "H":
+                photo = Photo()
+                photo.isVertical = False
+                photo.tags = tags
+                picture_h.append(photo)
                 solution.append(i)
+            else:
+                photo = Photo()
+                photo.isVertical = True
+                photo.tags = tags
+                picture_v.append()
 
         i = i + 1
 
