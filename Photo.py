@@ -11,16 +11,12 @@ class Photo:
 class Slide:
 
     tags = []
-    photo = []
 
     def __init__(self, horizontalPhoto = Photo()):
         self.isVertical = isVertical
         self.tags = horizontalPhoto.tags
 
-
-
     def __init__(self, verticalPhoto1 = Photo(), verticalPhoto2 = Photo()):
-            self.photo.append(verticalPhoto1)
-            self.photo.append(verticalPhoto2)
             self.tags = verticalPhoto1.tags + verticalPhoto2.tags
-            self.tags.
+            self.tags = list(dict.fromkeys(self.tags))
+            print(self.tags)
