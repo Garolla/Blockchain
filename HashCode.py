@@ -26,18 +26,28 @@ with open('./b_lovely_landscapes.txt', 'r') as f:
                     "tags": tags
                 }
 
-
             if orientation == "H":
+                picture_all.append(photo)
+
                 for t in tags:
                     photos_for_tag[t].append(i)
         i = i + 1
 
-    for (data) in photos_for_tag.values():
+    #for (data) in photos_for_tag.values():
+    #    solution_temp += data
+
+    #print(photos_for_tag)
+    #solution = list(set(solution_temp))
+
+    val = list(photos_for_tag.values())
+    val.sort(key=lambda x: len(x))
+
+    #solution = list(map(lambda x: x["index"], picture_all))
+    for (data) in val:
         solution_temp += data
 
-    print(photos_for_tag)
+    #print(photos_for_tag)
     solution = list(set(solution_temp))
-
     outfile.write(str(len(solution)) + "\n")
 
     for line in solution:
