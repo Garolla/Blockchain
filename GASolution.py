@@ -18,10 +18,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 # un tool grafico per visualizzare l'andamento del genetic man mano che va avanti
 
+
 def parse_file():
     outfile = open('./solution.txt', 'w')
 
-    with open('./b_lovely_landscapes.txt', 'r') as f:
+    with open('./e_shiny_selfies.txt', 'r') as f:
         slideIndex = 0
         slide_all = []
         picture_h = []
@@ -87,7 +88,7 @@ def main():
     print("File parsed")
 
     # parameters
-    #sparseness_of_map = 0.95
+    # sparseness_of_map = 0.95
     size_of_map = len(slide_all)
     population_size = 5#10#30
     number_of_iterations = 10#20#1000
@@ -95,13 +96,23 @@ def main():
     number_of_winners_to_keep = 2
     mutation_probability = 0.05
     number_of_groups = 1
+    dataset_reduction_factor = 100
+    crossover_cut_len = 10
+    crossover_number_of_cuts = 10
 
     # initialize the map and save it
-    the_map = initialize_complex_map(size_of_map, number_of_groups, slide_all)
+    print("I am calculating scores map...\n")
+    tuple = initialize_complex_map(size_of_map, number_of_groups, slide_all, dataset_reduction_factor)
+    print("I am did calculate scores map.\n")
+    the_map = tuple[0]
+    reduced_population = tuple[1]
+    rest_of_reduced_population = tuple[2]
+
     print("Map initialized")
 
     # create the starting population
-    population = create_starting_population(population_size, the_map, slide_all)
+    print("I am creating starting population..\n")
+    population = create_starting_population(population_size, the_map, reduced_population)
     print("Starting population created")
 
     #last_distance = 1000000000
@@ -126,12 +137,12 @@ def main():
         # allow members of the population to breed based on their relative score;
         # i.e., if their score is higher they're more likely to breed
         for j in range(0, number_of_couples):
-            new_1, new_2 = crossover(population[pick_mate(scores)], population[pick_mate(scores)])
+            new_1, new_2 = crossover(population[pick_mate(scores)], population[pick_mate(scores)], crossover_cut_len, crossover_number_of_cuts)
             new_population = new_population + [new_1, new_2]
 
         # mutate
         for j in range(0, len(new_population)):
-            new_population[j] = np.copy(mutate(new_population[j], 0.05, the_map))
+            new_population[j] = np.copy(mutate(new_population[j], mutation_probability, the_map))
 
         # keep members of previous generation
         new_population += [population[np.argmax(scores)]]
@@ -148,9 +159,10 @@ def main():
 
         last_bscore = curr_bscore
 
+    mergeData = best + rest_of_reduced_population  # add to best found solution rest of data not analyzed for computation purposes
     # plot the results
     #plot_best(the_map, best, number_of_iterations)
-    totalPoints = sc.totalScore(best)
+    totalPoints = sc.totalScore(mergeData)
     print("FINAL SCORE:")
     print(totalPoints)
     print("algorithm ended")
@@ -159,6 +171,7 @@ def main():
     now = datetime.datetime.now()
     print("END date and time using str method of datetime object:")
     print(str(now))
+
 
 def print_pop(population):
     for i in population:
@@ -184,21 +197,34 @@ def initialize(p_zero,N):
 # Let's make a more complicated map that has at least 10 stops that have to be made and see what happens.
 
 
-def initialize_complex_map(N, groups, data_set):
+def initialize_complex_map(N, groups, data_set, dataset_reduction_factor):
     the_map = np.zeros((N, N))
 
+    data_set_with_line_scores = []
+
     for i in range(0, N):
+        line_score = 0
         for j in range(0, i):
             slide_first = data_set[i]
             slide_second = data_set[j]
-            the_map[i][j] = sc.score(slide_first,slide_second)
+            the_map[i][j] = sc.score(slide_first, slide_second)
             the_map[j][i] = the_map[i][j]
-
+            line_score = line_score + the_map[i][j]
+        data_set_with_line_scores.append((line_score, data_set[i]))
     #ax = sns.heatmap(the_map)
 
     #plt.show()
-
-    return the_map
+    data_set_with_line_scores.sort(key=lambda tup: tup[0])  # sorts in place
+    desired_number_of_elements = N // dataset_reduction_factor
+    # get last N elements
+    reduced_data_set_with_scores = data_set_with_line_scores[-desired_number_of_elements:]
+    # get only the slides
+    reduced_data_set = [i[1] for i in reduced_data_set_with_scores]
+    # get first N elements
+    rest_of_reduced_population_with_scores = data_set_with_line_scores[N - desired_number_of_elements:]
+    # get only the slides
+    rest_of_reduced_population = [i[1] for i in rest_of_reduced_population_with_scores]
+    return the_map, reduced_data_set, rest_of_reduced_population
 
 
 def create_starting_population(size, the_map, data_set):
@@ -226,12 +252,14 @@ def fitness(solution, the_map): # calculate all the distances
         #    print(route)
         #    print(the_map)
 
-        score = score + the_map[solution[i - 1].ident][solution[i].ident]
+        slide1Id = solution[i - 1].ident
+        slide2Id = solution[i].ident
+        score = score + the_map[slide1Id][slide2Id]
 
     return score
 
 
-def crossover(father_a,father_b):  # merge two solutions to generate a two new ones
+def crossover(father_a, father_b, crossover_cut_len, crossover_number_of_cuts):  # merge two solutions to generate a two new ones
     # anche qui si devono tagliare dei pezzi random e swapparli le due soluzioni in esame
     # attenzione anche qui bisogna fare attenzione a generare soluzioni ammissibili
     # oltre a soluzioni provenienti dal crossover in ogni generazione vengono aggiunti nuove soluzioni generate random
@@ -239,8 +267,8 @@ def crossover(father_a,father_b):  # merge two solutions to generate a two new o
     # I initially made an error here by allowing routes to crossover at any point, which obviously won't work
     # you have to insure that when the two routes cross over that the resulting routes produce a valid route
     # which means that crossover points have to be at the same position value on the map
-    numberOfSlices = 5
-    cutMeasure = 5
+    numberOfSlices = crossover_number_of_cuts
+    cutMeasure = crossover_cut_len
     a = list(copy.deepcopy(father_a))
     b = list(copy.deepcopy(father_b))
 
@@ -327,6 +355,7 @@ def pick_mate(scores): #seleziona 2 membri alla volta (per effettuare il crossov
     for i in range(0, len(probs)):
         if rand < probs[i]:
             return i
+
 
 def print_output_file(slide_all):
     outfile = open('./solution.txt', 'w')
