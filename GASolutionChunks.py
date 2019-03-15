@@ -8,7 +8,6 @@
 
 from Photo import Photo
 from Slide import Slide
-import itertools
 import Score as sc
 
 import datetime
@@ -73,6 +72,72 @@ def parse_file():
     return slide_all
 
 
+def doGeneticsForChunk(size_of_map, number_of_groups, slide_all, index_of_chunk, number_of_chunks,
+                       number_of_ga_iterations, number_of_ga_couples, crossover_ga_cut_len, crossover_ga_number_of_cuts, ga_mutation_probability, ga_number_of_winners_to_keep):
+
+    # initialize the map and save it
+    print("I am calculating scores map...\n")
+    tuple = initialize_complex_map(size_of_map, number_of_groups, slide_all, index_of_chunk, number_of_chunks)
+    # def initialize_reduced_complex_map(N, groups, data_set, dataset_reduction_factor, score_map_dim_factor):
+    print("I did calculate scores map.\n")
+    the_map = tuple[0]
+    chunk_population = tuple[1]
+
+    print("Map initialized")
+
+    # create the starting population
+    print("I am creating starting population..\n")
+    population = create_starting_population(len(chunk_population), the_map, chunk_population)
+    print("Starting population created")
+
+    # last_distance = 1000000000
+    last_bscore = 0
+    # for a large number of iterations do:
+
+    for i in range(0, number_of_ga_iterations):
+        new_population = []
+
+        # evaluate the fitness of the current population
+        scores = score_population(population, the_map)
+
+        # best = population[np.argmin(scores)]
+        best = population[np.argmax(scores)]
+        # number_of_moves = len(best)
+        curr_bscore = fitness(best, the_map)
+        print('NEW Iteration %i: best score is %i' % (i, curr_bscore))
+        if curr_bscore != last_bscore:
+            print('Iteration %i: Best so far is for a score of %i' % (i, curr_bscore))
+            # plot_best(the_map, best, i)
+
+        # allow members of the population to breed based on their relative score;
+        # i.e., if their score is higher they're more likely to breed
+        for j in range(0, number_of_ga_couples):
+            new_1, new_2 = crossover(population[pick_mate(scores)], population[pick_mate(scores)], crossover_ga_cut_len,
+                                     crossover_ga_number_of_cuts)
+            new_population = new_population + [new_1, new_2]
+
+        # mutate
+        for j in range(0, len(new_population)):
+            new_population[j] = np.copy(mutate(new_population[j], ga_mutation_probability, the_map))
+
+        # keep members of previous generation
+        new_population += [population[np.argmax(scores)]]
+        for j in range(1, ga_number_of_winners_to_keep):
+            keeper = pick_mate(scores)
+            new_population += [population[keeper]]
+
+        # add new random members
+        while len(new_population) < len(slide_all):
+            new_population += [create_new_member(the_map)]
+
+        # replace the old population with a real copy
+        population = list(copy.deepcopy(new_population))
+
+        last_bscore = curr_bscore
+
+    return best
+
+
 def main():
 
     now = datetime.datetime.now()
@@ -98,73 +163,17 @@ def main():
     crossover_cut_len = 10
     crossover_number_of_cuts = 10
 
-    # initialize the map and save it
-    print("I am calculating scores map...\n")
-    # tuple = initialize_complex_map(size_of_map, number_of_groups, slide_all, dataset_reduction_factor)
-    tuple = initialize_reduced_complex_map(size_of_map, number_of_groups, slide_all, dataset_reduction_factor, score_map_reduction_factor)
-    # def initialize_reduced_complex_map(N, groups, data_set, dataset_reduction_factor, score_map_dim_factor):
-    print("I did calculate scores map.\n")
-    the_map = tuple[0]
-    reduced_population = tuple[1]
-    rest_of_reduced_population = tuple[2]
+    number_of_chunks = 100
+    merged_data = []
 
-    print("Map initialized")
-
-    # create the starting population
-    print("I am creating starting population..\n")
-    population = create_starting_population(population_size, the_map, reduced_population)
-    print("Starting population created")
-
-    # last_distance = 1000000000
-    last_bscore = 0
-    # for a large number of iterations do:
-
-    for i in range(0, number_of_iterations):
-        new_population = []
-
-        # evaluate the fitness of the current population
-        scores = score_population(population, the_map)
-
-        # best = population[np.argmin(scores)]
-        best = population[np.argmax(scores)]
-        # number_of_moves = len(best)
-        curr_bscore = fitness(best, the_map)
-        print('NEW Iteration %i: best score is %i' % (i, curr_bscore))
-        if curr_bscore != last_bscore:
-            print('Iteration %i: Best so far is for a score of %i' % (i, curr_bscore))
-            # plot_best(the_map, best, i)
-
-        # allow members of the population to breed based on their relative score;
-        # i.e., if their score is higher they're more likely to breed
-        for j in range(0, number_of_couples):
-            new_1, new_2 = crossover(population[pick_mate(scores)], population[pick_mate(scores)], crossover_cut_len, crossover_number_of_cuts)
-            new_population = new_population + [new_1, new_2]
-
-        # mutate
-        for j in range(0, len(new_population)):
-            new_population[j] = np.copy(mutate(new_population[j], mutation_probability, the_map))
-
-        # keep members of previous generation
-        new_population += [population[np.argmax(scores)]]
-        for j in range(1, number_of_winners_to_keep):
-            keeper = pick_mate(scores)
-            new_population += [population[keeper]]
-
-        # add new random members
-        while len(new_population) < population_size:
-            new_population += [create_new_member(the_map)]
-
-        # replace the old population with a real copy
-        population = list(copy.deepcopy(new_population))
-
-        last_bscore = curr_bscore
+    for ichunk in range(0, number_of_chunks):
+        chunk_best = doGeneticsForChunk(size_of_map, number_of_groups, slide_all, ichunk, number_of_chunks,
+                           number_of_iterations, number_of_couples, crossover_cut_len,
+                           crossover_number_of_cuts, mutation_probability, number_of_winners_to_keep)
+        merged_data = list(copy.deepcopy(merged_data)) + list(copy.deepcopy(chunk_best))
 
     # add to best found solution rest of data not analyzed for computation purposes
-    # merged_data = best.extend(rest_of_reduced_population)
-    # merged_data = np.concatenate(best, list(copy.deepcopy(rest_of_reduced_population)))
-    merged_data = list(copy.deepcopy(best)) + list(copy.deepcopy(rest_of_reduced_population))
-    # plot the results
-    # plot_best(the_map, best, number_of_iterations)
+    #merged_data = list(copy.deepcopy(best)) + list(copy.deepcopy(rest_of_reduced_population))
     total_points = sc.totalScore(merged_data)
     print("FINAL SCORE:")
     print(total_points)
@@ -197,14 +206,19 @@ def initialize(p_zero,N):
     # create the concept of distance between each point.
 
 
-def initialize_complex_map(N, groups, data_set, dataset_reduction_factor):
+def initialize_complex_map(N, groups, data_set, ith_chunk_nr, number_of_chunks):
+
+    desired_number_of_elements = N // number_of_chunks
+    chunk_start_index = desired_number_of_elements * ith_chunk_nr
+    chunk_end_index = min(N, chunk_start_index + desired_number_of_elements)
+
     the_map = np.zeros((N, N))
 
     data_set_with_line_scores = []
 
-    for i in range(0, N):
+    for i in range(chunk_start_index, chunk_end_index):
         line_score = 0
-        for j in range(0, i):
+        for j in range(chunk_start_index, i):
             slide_first = data_set[i]
             slide_second = data_set[j]
             the_map[i][j] = sc.score(slide_first, slide_second)
@@ -215,59 +229,8 @@ def initialize_complex_map(N, groups, data_set, dataset_reduction_factor):
 
     # plt.show()
     data_set_with_line_scores.sort(key=lambda tup: tup[0])  # sorts in place
-    print("sorted dataset from map with start:" + data_set_with_line_scores[0] + "and end:" + data_set_with_line_scores[len(data_set_with_line_scores)-1] + " scores.")
-    desired_number_of_elements = N // dataset_reduction_factor
-    # get last N elements
-    reduced_data_set_with_scores = data_set_with_line_scores[-desired_number_of_elements:]
-    print("reduced dataset from map with start potential score of:" + reduced_data_set_with_scores[0] + "and end:" + reduced_data_set_with_scores[
-        len(reduced_data_set_with_scores) - 1] + " scores.")
-    # get only the slides
-    reduced_data_set = [i[1] for i in reduced_data_set_with_scores]
-    # get first N elements
-    rest_of_reduced_population_with_scores = data_set_with_line_scores[N - desired_number_of_elements:]
-    # get only the slides
-    rest_of_reduced_population = [i[1] for i in rest_of_reduced_population_with_scores]
-    return the_map, reduced_data_set, rest_of_reduced_population
 
-
-# note that dataset_reduction_factor must be < of score_map_dim_factor
-def initialize_reduced_complex_map(N, groups, data_set, dataset_reduction_factor, score_map_dim_factor):
-    desired_scores_map_elements = N // score_map_dim_factor
-
-    the_map = np.zeros((desired_scores_map_elements, desired_scores_map_elements))
-
-    data_set_with_line_scores = []
-
-    for i in range(0, N):
-        line_score = 0
-        for j in range(0, i):
-            if i < desired_scores_map_elements:
-                slide_first = data_set[i]
-                slide_second = data_set[j]
-                the_map[i][j] = sc.score(slide_first, slide_second)
-                the_map[j][i] = the_map[i][j]
-                line_score = line_score + the_map[i][j]
-        data_set_with_line_scores.append((line_score, data_set[i]))
-    #ax = sns.heatmap(the_map)
-
-    #plt.show()
-    data_set_with_line_scores.sort(key=lambda tup: tup[0])  # sorts in place
-    minSc = str(data_set_with_line_scores[0][0])
-    maxSc = str(data_set_with_line_scores[N - 1][0])
-    print("sorted dataset from map with start:" + minSc + "and end:" + maxSc + " scores.")
-
-    desired_number_of_elements = N // dataset_reduction_factor
-
-    # get last N elements
-    reduced_data_set_with_scores = data_set_with_line_scores[-desired_number_of_elements:]
-    # get only the slides
-    reduced_data_set = [i[1] for i in reduced_data_set_with_scores]
-    # get first N elements
-    rest_of_reduced_population_with_scores = data_set_with_line_scores[N - desired_number_of_elements:]
-    # get only the slides
-    rest_of_reduced_population = [i[1] for i in rest_of_reduced_population_with_scores]
-    return the_map, reduced_data_set, rest_of_reduced_population
-
+    return the_map
 
 
 def create_starting_population(size, the_map, data_set):

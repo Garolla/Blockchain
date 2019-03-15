@@ -215,7 +215,7 @@ def initialize_complex_map(N, groups, data_set, dataset_reduction_factor):
 
     # plt.show()
     data_set_with_line_scores.sort(key=lambda tup: tup[0])  # sorts in place
-    print("sorted dataset from map with start:" + data_set_with_line_scores[0] + "and end:" + data_set_with_line_scores[len(data_set_with_line_scores)-1] + " scores.")
+    print("sorted dataset from map with start: " + data_set_with_line_scores[0] + "and end: " + data_set_with_line_scores[len(data_set_with_line_scores)-1] + " scores.")
     desired_number_of_elements = N // dataset_reduction_factor
     # get last N elements
     reduced_data_set_with_scores = data_set_with_line_scores[-desired_number_of_elements:]
@@ -254,12 +254,14 @@ def initialize_reduced_complex_map(N, groups, data_set, dataset_reduction_factor
     data_set_with_line_scores.sort(key=lambda tup: tup[0])  # sorts in place
     minSc = str(data_set_with_line_scores[0][0])
     maxSc = str(data_set_with_line_scores[N - 1][0])
-    print("sorted dataset from map with start:" + minSc + "and end:" + maxSc + " scores.")
+    print("sorted dataset from map with start: " + minSc + "and end: " + maxSc + " scores.")
 
     desired_number_of_elements = N // dataset_reduction_factor
 
     # get last N elements
     reduced_data_set_with_scores = data_set_with_line_scores[-desired_number_of_elements:]
+    print("reduced dataset from map with start potential score of:" + reduced_data_set_with_scores[0] + "and end:" + reduced_data_set_with_scores[
+        len(reduced_data_set_with_scores) - 1] + " scores.")
     # get only the slides
     reduced_data_set = [i[1] for i in reduced_data_set_with_scores]
     # get first N elements
