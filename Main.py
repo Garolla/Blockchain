@@ -25,7 +25,6 @@ def parse_file():
         terrain_map = []
         for index, line in enumerate(f):
             if index == 0:
-                print("FIRST LINE")
                 l = line.strip('\r\n')
                 val = l.split(' ')
                 map_width = int(val[0])
@@ -33,11 +32,8 @@ def parse_file():
                 customers_n = int(val[2])
                 reply_n = int(val[3])
             elif index < (customers_n + 1):
-                print("Customers line")
-                print(index)
                 l = line.strip('\r\n')
                 val = l.split(' ')
-                print(val)
                 customers_position.append((int(val[0]), int(val[1])))
                 customers_money.append(int(val[2]))
             else:
@@ -45,11 +41,7 @@ def parse_file():
                 terrain_line = []
                 for c in l:
                     terrain_line.append(terrain[c])
-                print(terrain_line)
                 terrain_map.append(terrain_line)
-
-
-        print(terrain_map)
 
     return map_width, map_height, customers_n, customers_position, customers_money, terrain_map
 
@@ -58,6 +50,13 @@ def main():
     print("INPUT:")
     print(input)
 
+    map_width = input[0]
+    map_height = input[1]
+    customers_n = input[2]
+    customers_pos = input[3]
+    customers_money = input[4]
+    terrain = input[5]
+    
 
 main()
 
