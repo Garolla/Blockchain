@@ -17,60 +17,34 @@ import numpy as np
 import random
 import copy
 import matplotlib.pyplot as plt
-import seaborn as sns
+#import seaborn as sns
 # un tool grafico per visualizzare l'andamento del genetic man mano che va avanti
 
 
 def parse_file():
-    with open('./e_shiny_selfies.txt', 'r') as f:
-        slide_index = 0
-        slide_all = []
-        picture_h = []
-        picture_v = []
-        solution = []
-        i = -1
-        for line in f:
-            temp = line.strip('\n')
-            value = temp.split(' ')
-            if len(value) >= 2:
-                orientation = value[0]
-                num_of_tags = value[1]
-                tags = value[2:len(value)]
-                # print(orientation + " " + num_of_tags)
-                # print(tags)
-                if orientation == "H":
-                    photo = Photo(False, tags, i)
-                    # print(i)
-                    # photo.isVertical = False
-                    # photo.tags = tags
-                    picture_h.append(photo)
-                    # solution.append(i)
-                else:
-                    photo = Photo(True, tags, i)
-                    # print(i)
-                    # photo.isVertical = True
-                    # photo.tags = tags
-                    picture_v.append(photo)
+    with open('./b_lovely_landscapes.txt', 'r') as f:
+        map_width = 0
+        map_height = 0
+        customers_n = 0
+        reply_n = 0
 
-            i = i + 1
-
-        for p in picture_h:
-            s = Slide([p])
-            s.ident = slide_index
-            slide_index = slide_index + 1
-            slide_all.append(s)
-
-        # here I compose slides made of vertical photos
-        # shuffle(picture_v)
-
-        i = 0
-        while i < len(picture_v) - 1:
-            slide = Slide([picture_v[i], picture_v[i + 1]])
-            slide.ident = slide_index
-            slide_index = slide_index + 1
-            slide_all.append(slide)
-            i += 2
-    return slide_all
+        customers_position = []
+        map = [[]]
+        for index, line in enumerate(f):
+            if index == 0:
+                l = line.strip('\n')
+                val = l.split(' ')
+                map_width = val[0]
+                map_height = val[1]
+                customers_n = val[2]
+                reply_n = val[3]
+            elif index <= customers_n:
+                print("customers line")
+                l = line.strip('\n')
+                val = l.split(' ')
+                customers_position[index - customers_n] = val
+            else:
+                print("map")
 
 
 def main():

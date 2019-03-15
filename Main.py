@@ -6,39 +6,29 @@ outfile = open('./solution.txt', 'w')
 
 with open('./b_lovely_landscapes.txt', 'r') as f:
 
-    slide_all = []
-    picture_h = []
-    picture_v = []
-    solution = []
-    i = -1
+    map_width = 0
+    map_height = 0
+    customers_n = 0
+    reply_n = 0
 
-    for line in f:
-        temp = line.strip('\n')
-        value = temp.split(' ')
-        if len(value) >= 2:
-            orientation = value[0]
-            num_of_tags = value[1]
-            tags = value[2:len(value)]
-            #print(orientation + " " + num_of_tags)
-            #print(tags)
-            if orientation == "H":
-                photo = Photo(False, tags, i)
-                #print(i)
-                #photo.isVertical = False
-                #photo.tags = tags
-                picture_h.append(photo)
-                #solution.append(i)
-            else:
-                photo = Photo(True, tags, i)
-                #print(i)
-                #photo.isVertical = True
-                #photo.tags = tags
-                picture_v.append(photo)
+    customers_position = []
+    map = [[]]
 
-        i = i + 1
-
-    for p in picture_h:
-        slide_all.append(Slide([p]))
+    for index, line in enumerate(f):
+        if index == 0:
+            l = line.strip('\n')
+            val = l.split(' ')
+            map_width = val[0]
+            map_height = val[1]
+            customers_n = val[2]
+            reply_n = val[3]
+        elif index <= customers_n:
+            print("customers line")
+            l = line.strip('\n')
+            val = l.split(' ')
+            customers_position[index - customers_n] = val
+        else:
+            print("map")
 
     # here I compose slides made of vertical photos
     isOdd = True

@@ -1,6 +1,6 @@
-class Photo:
+class Terrain:
 
-    ind = -1
+    type = ''
     isVertical = True
     tags = []
 
