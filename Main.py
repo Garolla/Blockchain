@@ -22,7 +22,7 @@ def parse_file():
 
         customers_position = []
         customers_money = []
-        terrain_map = [[]]
+        terrain_map = []
         for index, line in enumerate(f):
             if index == 0:
                 print("FIRST LINE")
@@ -43,8 +43,9 @@ def parse_file():
             else:
                 l = line.strip('\r\n')
                 terrain_line = []
-                for y, c in enumerate(l):
+                for c in l:
                     terrain_line.append(terrain[c])
+                print(terrain_line)
                 terrain_map.append(terrain_line)
 
 
