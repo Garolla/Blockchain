@@ -1,57 +1,64 @@
-from Photo import Photo
-from Slide import Slide
-import Score
+
 from random import shuffle
 outfile = open('./solution.txt', 'w')
 
-with open('./b_lovely_landscapes.txt', 'r') as f:
+terrain = {
+    '#':99999999,
+    '~': 800,
+    '*': 200,
+    '+': 150,
+    'X': 120,
+    '_': 100,
+    'H': 70,
+    'T': 50
+}
 
-    map_width = 0
-    map_height = 0
-    customers_n = 0
-    reply_n = 0
+def parse_file():
+    with open('./1_victoria_lake.txt', 'r') as f:
+        map_width = 0
+        map_height = 0
+        customers_n = 0
+        reply_n = 0
 
-    customers_position = []
-    map = [[]]
+        customers_position = []
+        customers_money = []
+        terrain_map = [[]]
+        for index, line in enumerate(f):
+            if index == 0:
+                print("FIRST LINE")
+                l = line.strip('\r\n')
+                val = l.split(' ')
+                map_width = int(val[0])
+                map_height = int(val[1])
+                customers_n = int(val[2])
+                reply_n = int(val[3])
+            elif index < (customers_n + 1):
+                print("Customers line")
+                print(index)
+                l = line.strip('\r\n')
+                val = l.split(' ')
+                print(val)
+                customers_position.append((int(val[0]), int(val[1])))
+                customers_money.append(int(val[2]))
+            else:
+                l = line.strip('\r\n')
+                terrain_line = []
+                for y, c in enumerate(l):
+                    terrain_line.append(terrain[c])
+                terrain_map.append(terrain_line)
 
-    for index, line in enumerate(f):
-        if index == 0:
-            l = line.strip('\n')
-            val = l.split(' ')
-            map_width = val[0]
-            map_height = val[1]
-            customers_n = val[2]
-            reply_n = val[3]
-        elif index <= customers_n:
-            print("customers line")
-            l = line.strip('\n')
-            val = l.split(' ')
-            customers_position[index - customers_n] = val
-        else:
-            print("map")
 
-    # here I compose slides made of vertical photos
-    isOdd = True
-    phs = []
-    shuffle(picture_v)
+        print(terrain_map)
 
-    i = 0
-    while i < len(picture_v) - 1:
-        slide = Slide([picture_v[i],picture_v[i+1]])
-        slide_all.append(slide)
-        i += 2
+    return map_width, map_height, customers_n, customers_position, customers_money, terrain_map
 
-    #shuffle(slide_all)
-    print(Score.totalScore(slide_all))
+def main():
+    input = parse_file()
+    print("INPUT:")
+    print(input)
 
-    outfile.write(str(len(slide_all)) + "\n")
 
-    for s in slide_all:
-        #print(s.tags)
-        if len(s.photo) == 1:
-            outfile.write(str(s.photo[0].ind) + "\n")
-        else:
-            outfile.write(str(s.photo[0].ind) + " " + str(s.photo[1].ind) + "\n")
+main()
 
 
 

@@ -21,15 +21,27 @@ import matplotlib.pyplot as plt
 # un tool grafico per visualizzare l'andamento del genetic man mano che va avanti
 
 
+terrain = {
+    '#':99999999,
+    '~': 800,
+    '*': 200,
+    '+': 150,
+    'X': 120,
+    '_': 100,
+    'H': 70,
+    'T': 50
+}
+
 def parse_file():
-    with open('./b_lovely_landscapes.txt', 'r') as f:
+    with open('./1_victoria_lake', 'r') as f:
         map_width = 0
         map_height = 0
         customers_n = 0
         reply_n = 0
 
         customers_position = []
-        map = [[]]
+        customers_money = []
+        terrain_map = [[]]
         for index, line in enumerate(f):
             if index == 0:
                 l = line.strip('\n')
@@ -42,9 +54,18 @@ def parse_file():
                 print("customers line")
                 l = line.strip('\n')
                 val = l.split(' ')
-                customers_position[index - customers_n] = val
+                customers_position[index - 1] = (val[0], val[1])
+                customers_money[index - 1] = val[2]
             else:
-                print("map")
+                l = line.strip('\n')
+                for y, c in enumerate(l):
+                    cost = -1
+                    terrain_map[index - customers_n - 1][y] = terrain[c]
+
+    return map_width, map_height, customers_n, customers_position, customers_money, terrain_map
+
+
+
 
 
 def main():
